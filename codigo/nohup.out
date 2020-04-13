@@ -1,0 +1,2 @@
+display: unable to open image `ruta_y_nombre_de_imagen_generada.png': No existe el archivo o el directorio @ error/blob.c/OpenBlob/2712.
+display: no decode delegate for this image format `' @ error/constitute.c/ReadImage/501.

@@ -1,0 +1,85 @@
+struct entero
+{
+    entero *anterior;
+    string nombre;
+    int dato;
+    int posicion;
+    int tamano = 13;
+    entero *siguiente;
+};
+
+struct decimal
+{
+    decimal *anterior;
+    decimal *siguiente;
+    string nombre;
+    double dato;
+    int posicion;
+    int tamaño = 13;
+};
+struct cadena{
+    cadena *anterior;
+    cadena *siguiente;    
+    string dato;
+    int posicion;
+    int tamaño = 13;
+};
+struct caracter{
+    caracter *anterior;
+    caracter *siguiente;
+    char dato;
+    int posicion;
+    int tamaño;
+};
+
+void agregarColumna(columna *&entrada, string nombreColumna, int tipo)
+{
+    columna *aux = new columna;
+    aux->nombre = nombreColumna;
+    switch (tipo)
+    {
+    case 1:
+        aux->arbolDatos = new columnaHash;
+        aux->tipo = 0;
+        break;
+    case 2:
+        aux->tipoDecimal = new decimal;
+        aux->tipo = 1;
+        break;
+    case 3:
+        aux->tipoCadena = new cadena;
+        aux->tipo = 2;
+        break;
+    case 4:
+        aux->tipoCaracter = new caracter;
+        aux->tipo = 3;
+        break;
+    default:
+        break;
+    }
+    columna *aux1 = entrada;
+    columna *aux2;
+
+    while (aux1 != NULL)
+    {
+        aux2 = aux1;
+        aux1 = aux1->siuiente;
+    }
+
+    if (entrada == aux1)
+    {
+        entrada = aux;
+        aux->anterior = NULL;
+    }
+    else
+    {
+        aux2->siuiente = aux;
+            aux->anterior = aux2;
+    }
+    aux->siuiente = aux1;
+}
+
+void mostrarTipoDatos(int i)
+{
+    cout << "\n1.Entero 2.Decimal 3.Cadena 4.Caracter\nTipo de dato de columnas #: "<<i<<" __: ";
+}

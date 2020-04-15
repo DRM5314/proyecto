@@ -172,63 +172,48 @@ void mostrarArbol(arbolDatos *entrada, int contador)
     }
 }
 string auxDatos = "";
-void escribirHijos(arbolDatos *aux, int entradas)
+
+void escribirHijos(arbolDatos *aux)
 {
     if (aux == NULL)
         return;
     else
     {
-        escribirHijos(aux->hD, entradas + 1);
-        auxDatos += aux->valor;
-        cout << " contador va en " << entradas << endl;
-        int auxEntradas = entradas % 2;
-        cout << " el residuo es de " << auxEntradas << endl;
-        if (entradas > 0 && auxEntradas == 0)
-            auxDatos += ";\n";
-        else
-            auxDatos += "->";
-        escribirHijos(aux->hI, entradas + 1);
+        escribirHijos(aux->hI);
+        if(aux->hD != NULL)auxDatos += aux->valor+"->"+aux->hD->valor+";\n";
+        if(aux->hI != NULL)auxDatos += aux->valor+"->"+aux->hI->valor+";\n";
+        escribirHijos(aux->hD);
     }
 }
 void consulta(tabla *entrada)
 {
+    cout<<"la tabla es "<<entrada->nombre<<endl;
     ofstream file;
     file.open("./datos.dot");
-    file << "{\n";
+    file << "digraph G{\n";
     if (entrada != NULL)
     {
-        file << "Datos de tabla " << entrada->nombre << endl;
+        file << "Datos_de_tabla_" << entrada->nombre<<"_";
         columna *aux = entrada->columnas;
         while (aux != NULL)
         {
             if (aux->arregloArboles != NULL)
             {
-                file << "\ndatos de columna " << aux->nombre << endl;
+                file << "_datos_de_columna_" << aux->nombre <<";"<< endl;
                 for (int i = 0; i < aux->numeroColumnas; i++)
                 {
                     string padre = "", hijoI = "", hijoD = "";
-                    arbolDatos *auxDatos = aux->arregloArboles[i];
-                    while (auxDatos != NULL)
-                    {
-                        if (auxDatos->padre != NULL)
-                            padre = auxDatos->padre->valor;
-                        if (auxDatos->hD != NULL)
-                            hijoD = auxDatos->hD->valor;
-                        if (auxDatos->hI != NULL)
-                            hijoI = auxDatos->hI->valor;
-                    }
-                    if (padre != "")
-                        file << padre << endl;
-                    if (hijoI != "")
-                        file << padre << "->" << hijoI << endl;
-                    if (hijoD != "")
-                        file << padre << "->" << hijoD << endl;
-                    delete auxDatos;
+                    arbolDatos *auxArbolDatos = aux->arregloArboles[i];                    
+                        escribirHijos(auxArbolDatos);
+                        if(auxDatos != ""){
+                            file<<auxDatos;
+                            auxDatos = "";
+                        }
+
                 }
             }
             aux = aux->siuiente;
         }
-        delete aux;
     }
     file << "}";
     file.close();
@@ -241,28 +226,8 @@ void mostrarDatosTotales(tabla *entrada, string nombre)
     {
         if (entrada->nombre == nombre)
         {
-            columna *auxiliarColumnas = entrada->columnas;
-            if (auxiliarColumnas != NULL && entrada->columnas->arregloArboles != NULL)
-            {
-                cout << "Datos de tabla: " << entrada->nombre << endl;
-                cout << "Columna :" << auxiliarColumnas->nombre << endl;
-                for (int i = 0; i < auxiliarColumnas->numeroColumnas; i++)
-                {
-                    arbolDatos *auxiliarDatos = auxiliarColumnas->arregloArboles[i];
-                    if (auxiliarDatos != NULL)
-                    {
-                        mostrarArbol(auxiliarDatos, 0);
-                        //escribirHijos(auxiliarDatos,0);
-                        if (auxDatos != "")
-                        {
-                            cout << auxDatos;
-                            auxDatos = "";
-                        }
-                    }
-                    if (auxiliarColumnas != NULL && auxiliarColumnas->siuiente != NULL)
-                        auxiliarColumnas = auxiliarColumnas->siuiente;
-                }
-            }
+            consulta(entrada);
+            return;
         }
         entrada = entrada->siguiente;
     }
@@ -275,7 +240,7 @@ void busquedaDatos(tabla *entrada, string nombreTabla)
     switch (opcion)
     {
     case 1:
-        mostrarDatosTotales(entrada, nombreTabla);
+        mostrarDatosTotales(entrada,nombreTabla);
         break;
     case 2:
         cout<<"\n\n\t lamentamos el inconveniente, funcion aun no desarrollada\n";
@@ -613,9 +578,10 @@ void menu()
             reporteTabla(tablas);
             break;
         case 4:
-            cout << "Hasta la proxima" << endl;
-            cout << "________liberando  memoria" << endl;
+            cout << "\t________liberando  memoria____" << endl;
             liberarMemoria(tablas);
+            cout<<"\nMemoria liberada \n\n";
+            cout << "Hasta la proxima" << endl;
         default:
             break;
         }

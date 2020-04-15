@@ -182,6 +182,7 @@ void escribirHijos(arbolDatos *aux)
         escribirHijos(aux->hI);
         if(aux->hD != NULL)auxDatos += aux->valor+"->"+aux->hD->valor+";\n";
         if(aux->hI != NULL)auxDatos += aux->valor+"->"+aux->hI->valor+";\n";
+        if(aux->hD == NULL && aux->hI == NULL)auxDatos += aux->valor+";\n";
         escribirHijos(aux->hD);
     }
 }

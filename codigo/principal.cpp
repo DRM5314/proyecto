@@ -345,7 +345,15 @@ void rd(arbolDatos *&nodo)
     else
         cout << "la entrada viene nula" << endl;
 }
-
+int comparacion(string dato){
+    int retorno = 0;
+    for (int i = 0 ; i < dato.length(); i++)
+    {
+        retorno += int (dato[i]);
+    }
+    return retorno;
+    
+}
 void mostrarNumeroHijos(arbolDatos *&entradaAvl)
 {
     arbolDatos *auxiliar = entradaAvl;
@@ -376,7 +384,7 @@ void insertarArbolEntero(arbolDatos *&entrada, string valorEntrada)
     }
     while (avlAuxiliar != NULL)
     {
-        if (valorEntrada > avlAuxiliar->valor)
+        if (comparacion(valorEntrada) > comparacion(avlAuxiliar->valor))
         {
             //cout << valorEntrada << " es mayor que " << avlAuxiliar->valor << endl;
             avlAuxiliar->numeroHD++;
@@ -394,7 +402,7 @@ void insertarArbolEntero(arbolDatos *&entrada, string valorEntrada)
             else
                 avlAuxiliar = avlAuxiliar->hD;
         }
-        if (valorEntrada < avlAuxiliar->valor)
+        if (comparacion(valorEntrada) < comparacion(avlAuxiliar->valor))
         {
             //cout << valorEntrada << " es menor que " << avlAuxiliar->valor << endl;
             avlAuxiliar->numeroHI++;
@@ -438,6 +446,7 @@ int funcionHash(string entrada, int hola)
         retorno = retorno * -1;
     return retorno;
 }
+
 void rehashing()
 {
     cout << "\n\tExedio el factor de carga y debe volver a incrementar el tamaño\n";
@@ -557,11 +566,12 @@ void liberarArbol(arbolDatos *entrada)
         {
             liberarArbol(entrada->hD);
             liberarArbol(entrada->hI);
+            cout<<"borro dato"<<entrada->valor<<endl;
             delete entrada;
         }
     }
 }
-void liberarMemoria(tabla *&entrada)
+void liberarMemoria(tabla *entrada)
 {
     while (entrada != NULL)
     {
@@ -572,11 +582,15 @@ void liberarMemoria(tabla *&entrada)
             {
                 liberarArbol(auxLiberar->arregloArboles[i]);
             }
+            columna *auxBorrarColumna = auxLiberar;
             auxLiberar = auxLiberar->siuiente;
-            delete auxLiberar->anterior;
+            cout<<"Borro columna "<<auxBorrarColumna->nombre<<endl;            
+            delete auxBorrarColumna;
         }
+        tabla *auxBorrarTabla = entrada;
         entrada = entrada->siguiente;
-        delete entrada->anterior;
+        cout<<"Borro la tabla "<<auxBorrarTabla->nombre<<endl;
+        delete auxBorrarTabla;
     }
 }
 void menu()

@@ -14,6 +14,7 @@ struct arbolDatos
     arbolDatos *padre = NULL;
     arbolDatos *raiz = NULL;
     string valor;
+    int posicionFila;
     int numeroHI = 0, numeroHD = 0;
 };
 struct columna
@@ -167,7 +168,7 @@ void mostrarArbol(arbolDatos *entrada, int contador)
         {
             cout << "  ";
         }
-        cout << entrada->valor << endl;
+        cout << entrada->valor << " Rf(" << entrada->posicionFila << ")" << endl;
         mostrarArbol(entrada->hI, contador + 1);
     }
 }
@@ -180,37 +181,43 @@ void escribirHijos(arbolDatos *aux)
     else
     {
         escribirHijos(aux->hI);
-        if(aux->hD != NULL)auxDatos += aux->valor+"->"+aux->hD->valor+";\n";
-        if(aux->hI != NULL)auxDatos += aux->valor+"->"+aux->hI->valor+";\n";
-        if(aux->hD == NULL && aux->hI == NULL)auxDatos += aux->valor+";\n";
+        if (aux->hD != NULL)
+            auxDatos += aux->valor + "->" + aux->hD->valor + ";\n";
+        if (aux->hI != NULL)
+            auxDatos += aux->valor + "->" + aux->hI->valor + ";\n";
+        if (aux->hD == NULL && aux->hI == NULL)
+            auxDatos += aux->valor + ";\n";
         escribirHijos(aux->hD);
     }
 }
 void consulta(tabla *entrada)
 {
-    cout<<"la tabla es "<<entrada->nombre<<endl;
+    cout << "la tabla es " << entrada->nombre << endl;
     ofstream file;
     file.open("./datos.dot");
     file << "digraph G{\n";
     if (entrada != NULL)
     {
-        file << "Datos_de_tabla_" << entrada->nombre<<"_";
+        file << "Datos_de_tabla_" << entrada->nombre << "_";
         columna *aux = entrada->columnas;
         while (aux != NULL)
         {
             if (aux->arregloArboles != NULL)
             {
-                file << "_datos_de_columna_" << aux->nombre <<";"<< endl;
+                file << "_datos_de_columna_" << aux->nombre << ";" << endl;
                 for (int i = 0; i < aux->numeroColumnas; i++)
                 {
                     string padre = "", hijoI = "", hijoD = "";
-                    arbolDatos *auxArbolDatos = aux->arregloArboles[i];                    
-                        escribirHijos(auxArbolDatos);
-                        if(auxDatos != ""){
-                            file<<auxDatos;
-                            auxDatos = "";
-                        }
-
+                    arbolDatos *auxArbolDatos = aux->arregloArboles[i];
+                    mostrarArbol(auxArbolDatos, 0);
+                    cout << endl
+                         << endl;
+                    escribirHijos(auxArbolDatos);
+                    if (auxDatos != "")
+                    {
+                        file << auxDatos;
+                        auxDatos = "";
+                    }
                 }
             }
             aux = aux->siuiente;
@@ -233,18 +240,96 @@ void mostrarDatosTotales(tabla *entrada, string nombre)
         entrada = entrada->siguiente;
     }
 }
+int funcionHash(string entrada, int hola)
+{
+    /*
+    la funcion hash esta diseñada para datos generales en este programa, si desea implementear 
+    datos especificos para un manejo posterior de dichos debera crear mas funciones hash, en esta
+    ocacion se realizo una suma de los valores ascii de cada entrada evaluando cada entrada en sus 
+    caracteres y sumando el valor ascii de cada caracter y obtendra el valor del residuo entre los
+    espacios disponibles para la posiscion la cual apunta al arbol que contiene esos datos
+    */
+    int ascii = 0;
+    int retorno = 0;
+    for (int d = 0; d < entrada.length(); d++)
+    {
+        char aux = entrada[d];
+        //cout << aux << " ";
+        ascii += (int)aux;
+    }
+    retorno = ascii % hola;
+    cout << " la funcion hash devuelve " << retorno << endl;
+    if (retorno < 0)
+        retorno = retorno * -1;
+    return retorno;
+}
+int comparacion(string dato)
+{
+    int retorno = 0;
+    for (int i = 0; i < dato.length(); i++)
+    {
+        retorno += int(dato[i]);
+    }
+    return retorno;
+}
+void buscarDato(tabla *entrada, string nombre)
+{
+    while (entrada != NULL)
+    {
+        if (entrada->nombre == nombre)
+        {
+            if (entrada->columnas != NULL)
+            {
+                string datoBuscar;
+                cout << "Ingrese el dato a buscar\n";
+                cin >> datoBuscar;
+                for (int i = 0; i < entrada->numeroColumnas; i++)
+                {
+                    int posicion = funcionHash(datoBuscar, entrada->columnas->numeroColumnas);
+                    arbolDatos *auxArbol = entrada->columnas->arregloArboles[posicion];
+                    while (auxArbol != NULL)
+                    {
+                        if (comparacion(datoBuscar) <= comparacion(auxArbol->valor))
+                        {
+                            if (comparacion(datoBuscar) == comparacion(auxArbol->valor))
+                            {
+                                cout << "Dato encontado pertenece a la fila" << auxArbol->posicionFila << " de la columna " << entrada->columnas->nombre;
+                                return;
+                            }
+                            else
+                                auxArbol = auxArbol->hI;
+                        }
+                        else if (comparacion(datoBuscar) >= comparacion(auxArbol->valor))
+                        {
+                            if (comparacion(datoBuscar) == comparacion(auxArbol->valor))
+                            {
+                                cout << "Dato encontado\n\t\t pertenece a la fila" << auxArbol->posicionFila << " de la columna " << entrada->columnas->nombre;
+                                return;
+                            }
+                            else
+                                auxArbol = auxArbol->hD;
+                        }
+                    }
+                    if (entrada->columnas->siuiente != NULL)
+                        entrada->columnas = entrada->columnas->siuiente;
+                }
+            }
+        }
+        entrada = entrada->siguiente;
+    }
+}
 void busquedaDatos(tabla *entrada, string nombreTabla)
 {
     int opcion;
-    cout << "\n1.Seleccionar todos los datos 2.Seleccionar columnas\n";
+    cout << "\n1.Seleccionar todos los datos 2.Buscar dato\n";
     cin >> opcion;
     switch (opcion)
     {
     case 1:
-        mostrarDatosTotales(entrada,nombreTabla);
+        mostrarDatosTotales(entrada, nombreTabla);
         break;
     case 2:
-        cout<<"\n\n\t lamentamos el inconveniente, funcion aun no desarrollada\n";
+        buscarDato(entrada, nombreTabla);
         break;
     default:
         break;
@@ -311,15 +396,7 @@ void rd(arbolDatos *&nodo)
     else
         cout << "la entrada viene nula" << endl;
 }
-int comparacion(string dato){
-    int retorno = 0;
-    for (int i = 0 ; i < dato.length(); i++)
-    {
-        retorno += int (dato[i]);
-    }
-    return retorno;
-    
-}
+
 void mostrarNumeroHijos(arbolDatos *&entradaAvl)
 {
     arbolDatos *auxiliar = entradaAvl;
@@ -337,7 +414,7 @@ void mostrarNumeroHijos(arbolDatos *&entradaAvl)
         auxiliar = auxiliar->padre;
     }
 }
-void insertarArbolEntero(arbolDatos *&entrada, string valorEntrada)
+void insertarArbolEntero(arbolDatos *&entrada, string valorEntrada, int poisicionFila)
 {
     arbolDatos *avlAuxiliar = entrada;
     if (entrada == NULL)
@@ -346,11 +423,12 @@ void insertarArbolEntero(arbolDatos *&entrada, string valorEntrada)
         entrada->padre = NULL;
         entrada->valor = valorEntrada;
         entrada->raiz = entrada;
+        entrada->posicionFila = poisicionFila;
         cout << "\nInserto raiz\n";
     }
     while (avlAuxiliar != NULL)
     {
-        if (comparacion(valorEntrada) > comparacion(avlAuxiliar->valor))
+        if (comparacion(valorEntrada) >= comparacion(avlAuxiliar->valor))
         {
             //cout << valorEntrada << " es mayor que " << avlAuxiliar->valor << endl;
             avlAuxiliar->numeroHD++;
@@ -360,6 +438,7 @@ void insertarArbolEntero(arbolDatos *&entrada, string valorEntrada)
                 nuevoNodo->padre = entrada;
                 nuevoNodo->valor = valorEntrada;
                 nuevoNodo->raiz = entrada;
+                nuevoNodo->posicionFila = poisicionFila;
                 avlAuxiliar->hD = nuevoNodo;
                 //cout << "\n inserto valor " << valorEntrada << " en el hijo derecho de " << avlAuxiliar->valor;
                 mostrarNumeroHijos(nuevoNodo);
@@ -368,7 +447,7 @@ void insertarArbolEntero(arbolDatos *&entrada, string valorEntrada)
             else
                 avlAuxiliar = avlAuxiliar->hD;
         }
-        if (comparacion(valorEntrada) < comparacion(avlAuxiliar->valor))
+        if (comparacion(valorEntrada) <= comparacion(avlAuxiliar->valor))
         {
             //cout << valorEntrada << " es menor que " << avlAuxiliar->valor << endl;
             avlAuxiliar->numeroHI++;
@@ -379,6 +458,7 @@ void insertarArbolEntero(arbolDatos *&entrada, string valorEntrada)
                 //cout<<"El padre del nuevo nodo es "<<nuevoNodo->padre->valor<<endl;
                 nuevoNodo->valor = valorEntrada;
                 nuevoNodo->raiz = entrada;
+                nuevoNodo->posicionFila = poisicionFila;
                 avlAuxiliar->hI = nuevoNodo;
                 // cout << "\n inserto valor " << valorEntrada << " en el hijo izquierdo de " << avlAuxiliar->valor;
                 mostrarNumeroHijos(nuevoNodo);
@@ -389,29 +469,6 @@ void insertarArbolEntero(arbolDatos *&entrada, string valorEntrada)
         }
     }
 }
-int funcionHash(string entrada, int hola)
-{
-    /*
-    la funcion hash esta diseñada para datos generales en este programa, si desea implementear 
-    datos especificos para un manejo posterior de dichos debera crear mas funciones hash, en esta
-    ocacion se realizo una suma de los valores ascii de cada entrada evaluando cada entrada en sus 
-    caracteres y sumando el valor ascii de cada caracter y obtendra el valor del residuo entre los
-    espacios disponibles para la posiscion la cual apunta al arbol que contiene esos datos
-    */
-    int ascii = 0;
-    int retorno = 0;
-    for (int d = 0; d < entrada.length(); d++)
-    {
-        char aux = entrada[d];
-        //cout << aux << " ";
-        ascii += (int)aux;
-    }
-    retorno = ascii % hola;
-    cout << " la posicion donde debe insertar es en " << retorno << endl;
-    if (retorno < 0)
-        retorno = retorno * -1;
-    return retorno;
-}
 
 void rehashing()
 {
@@ -420,22 +477,28 @@ void rehashing()
 void mostrarColumnasInsertar(columna *&aux)
 {
     columna *auxiliarTabla = aux;
+    int posicionFila = 0;
+    if (auxiliarTabla != NULL)
+    {
+        auxiliarTabla->posicionFila++;
+        posicionFila = auxiliarTabla->posicionFila;
+    }
     while (auxiliarTabla != NULL)
     {
         string auxEntrada;
-        auxiliarTabla->posicionFila++;
         cout << "ingrese el dato de la columna " << auxiliarTabla->nombre << endl;
         cin >> auxEntrada;
 
         int posicion = funcionHash(auxEntrada, auxiliarTabla->numeroColumnas);
         if (auxiliarTabla->factorCarga > auxiliarTabla->factorCargaPermitido)
             rehashing();
-        insertarArbolEntero(auxiliarTabla->arregloArboles[posicion], auxEntrada);
+        insertarArbolEntero(auxiliarTabla->arregloArboles[posicion], auxEntrada, posicionFila);
         mostrarArbol(auxiliarTabla->arregloArboles[posicion], 0);
         auxiliarTabla->factorCarga = (float)auxiliarTabla->posicionFila / (float)auxiliarTabla->numeroColumnas;
         auxiliarTabla = auxiliarTabla->siuiente;
     }
 }
+
 void insertarDatoEnColumna(tabla *&tablaEntrada, string nomreColumna)
 {
     tabla *auxTabla = tablaEntrada;
@@ -532,7 +595,7 @@ void liberarArbol(arbolDatos *entrada)
         {
             liberarArbol(entrada->hD);
             liberarArbol(entrada->hI);
-            cout<<"borro dato"<<entrada->valor<<endl;
+            cout << "Borro dato" << entrada->valor << endl;
             delete entrada;
         }
     }
@@ -550,12 +613,12 @@ void liberarMemoria(tabla *entrada)
             }
             columna *auxBorrarColumna = auxLiberar;
             auxLiberar = auxLiberar->siuiente;
-            cout<<"Borro columna "<<auxBorrarColumna->nombre<<endl;            
+            cout << "Borro columna " << auxBorrarColumna->nombre << endl;
             delete auxBorrarColumna;
         }
         tabla *auxBorrarTabla = entrada;
         entrada = entrada->siguiente;
-        cout<<"Borro la tabla "<<auxBorrarTabla->nombre<<endl;
+        cout << "Borro tabla " << auxBorrarTabla->nombre << endl;
         delete auxBorrarTabla;
     }
 }
@@ -581,7 +644,7 @@ void menu()
         case 4:
             cout << "\t________liberando  memoria____" << endl;
             liberarMemoria(tablas);
-            cout<<"\nMemoria liberada \n\n";
+            cout << "\nMemoria liberada \n\n";
             cout << "Hasta la proxima" << endl;
         default:
             break;

@@ -21,8 +21,8 @@ struct columna
 {
     columna *anterior;
     columna *siuiente;
-    int numeroColumnas = 5;
-    arbolDatos *arregloArboles[5];
+    int numeroColumnas = 17;
+    arbolDatos *arregloArboles[17];
     int posicionFila = 0;
     string nombre;
     double factorCarga;
